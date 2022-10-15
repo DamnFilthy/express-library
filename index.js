@@ -1,96 +1,130 @@
 const express = require('express');
 const {v4: uuid} = require('uuid');
 
-class Todo {
-    constructor(id = uuid(), title = '', desc = '') {
+class Book {
+    constructor(
+        title = '',
+        description = '',
+        authors = '',
+        favorite = '',
+        fileCover = '',
+        fileName = '',
+        id = uuid()
+    ) {
         this.id = id
         this.title = title
-        this.desc = desc
+        this.description = description
+        this.authors = authors
+        this.favorite = favorite
+        this.fileName = fileName
     }
 }
 
 const store = {
-    todo: [
+    books: [
         {
-            id: 1,
-            title: 'test title 1',
-            desc: 'test description 1'
-        },
+            id: "1",
+            title: "initial title",
+            description: "initial description",
+            authors: "initial authors",
+            favorite: "initial favorite",
+            fileCover: "initial fileCover",
+            fileName: "initial fileName"
+        }
+    ]
+}
+
+const db = {
+    users: [
         {
-            id: 2,
-            title: 'test title 2',
-            desc: 'test description 3'
-        },
-        {
-            id: 3,
-            title: 'test title 3',
-            desc: 'test description 3'
+            id: '1',
+            name: 'root',
+            role: 'admin',
+            mail: 'test@mail.ru'
         }
     ]
 }
 
 app = express()
 app.use(express.json())
+app.use(express.urlencoded({extended: true}))
 
-app.get('/api/todo', (req, res) => {
-    const {todo} = store
-
-    res.json(todo)
-})
-
-app.get('/api/todo/:id', (req, res) => {
-    const {todo} = store
-    const {id} = req.params
-    const index = todo.findIndex(item => item.id === +id)
+app.post('/api/user/login', (req, res) => {
+    const {users} = db
+    const {id} = req.query
+    const index = users.findIndex(item => item.id == id)
 
     if (index !== -1) {
-        res.json(todo[index])
+        res.status(201)
+        res.json(users[index])
     } else {
         res.status(404)
-        res.json('404 | запись не найдена')
+        res.json('404 | пользователя не существует')
     }
 })
 
-app.post('/api/todo', (req, res) => {
-    const {todo} = store
-    const {title, desc} = req.body
+app.get('/api/books', (req, res) => {
+    const {books} = store
+    res.json(books)
+})
 
-    const newTodo = new Todo(title, desc)
-    todo.push(newTodo)
+app.get('/api/books/:id', (req, res) => {
+    const {books} = store
+    const {id} = req.params
+    const index = books.findIndex(item => item.id == id)
+
+    if (index !== -1) {
+        res.json(books[index])
+    } else {
+        res.status(404)
+        res.json('404 | книга не найдена')
+    }
+})
+
+app.post('/api/books', (req, res) => {
+    const {books} = store
+    const {title, description, authors, favorite, fileCover, fileName} = req.body
+    const newBook = new Book(title, description, authors, favorite, fileCover, fileName)
+
+    books.push(newBook)
 
     res.status(201)
-    res.json(newTodo)
+    res.json(newBook)
 })
 
-app.put('/api/todo/:id', (req, res) => {
-    const {todo} = store
-    const {title, desc} = req.body
+app.put('/api/books/:id', (req, res) => {
+    const {books} = store
+    const {title, description, authors, favorite, fileCover, fileName} = req.body
     const {id} = req.params
 
-    const index = todo.findIndex(item => item.id === +id)
+    const index = books.findIndex(item => item.id == id)
 
     if (index !== -1) {
-        todo[index] = {
-            ...todo[index],
+        books[index] = {
+            ...books[index],
             title,
-            desc
+            description,
+            authors,
+            favorite,
+            fileCover,
+            fileName
         }
         res.status(201)
-        res.json(todo[index])
+        res.json(books[index])
     } else {
         res.status(404)
         res.json('404 | запись не найдена')
     }
 })
 
-app.delete('/api/todo/:id', (req, res) => {
-    const {todo} = store
+app.delete('/api/books/:id', (req, res) => {
+    const {books} = store
     const {id} = req.params
 
-    const index = todo.findIndex(item => item.id === +id)
+    const index = books.findIndex(item => item.id == id)
 
     if (index !== -1) {
-        todo.splice(todo[index], 1)
+        books.splice(books[index], 1)
         res.status(201)
         res.json('Запись была успешна удалена.')
     } else {
@@ -99,5 +133,5 @@ app.delete('/api/todo/:id', (req, res) => {
     }
 })
 
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 5000
 app.listen(PORT)
