@@ -3,9 +3,13 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "jest": {
+    "verbose": true
+  },
   "scripts": {
     "dev": "nodemon index.js",
-    "start": "pm2 start index.js"
+    "start": "pm2 start index.js",
+    "test": "jest --watchAll --no-cache --detectOpenHandles"
   },
   "author": "",
   "license": "ISC",
@@ -16,6 +20,11 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.20"
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "jest": "^29.2.0",
+    "nodemon": "^2.0.20",
+    "superagent": "^8.0.2",
+    "supertest": "^6.3.0"
   }
 }
