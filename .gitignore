@@ -5,3 +5,4 @@ package-lock.json
 /hm3/http.js
 /hm3/index.js
 server.logs
+.env
