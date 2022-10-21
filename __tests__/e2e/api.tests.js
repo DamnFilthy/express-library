@@ -3,7 +3,7 @@ const app = require("../../index");
 
 describe('test api books', () => {
     beforeAll(async () => {
-        await request(app).delete('/__test__/data')
+        await request(app).delete('/api/__test__/data')
     })
 
     test('GET /api/books: return 200 and empty array', async () => {
@@ -60,15 +60,43 @@ describe('test api books', () => {
             .expect(200, [createdBook])
     })
 
-    test('PUT /api/books/:id: should not update data without title', async () => {
+    test('PATCH /api/books/:id: should not update data without title', async () => {
         await request(app)
-            .put('/api/books/' + createdBook.id)
+            .patch('/api/books/' + createdBook.id)
             .send({title: ''})
             .expect(400)
 
         await request(app)
             .get('/api/books')
             .expect(200, [createdBook])
+    })
+
+    test('PATCH /api/books/:id: cannot update data, book not found', async () => {
+        await request(app)
+            .patch('/api/books/test-id')
+            .send({title: 'test update data'})
+            .expect(404)
+    })
+
+    test('PATCH /api/books/:id: should update with correct data', async () => {
+        await request(app)
+            .patch('/api/books/' + createdBook.id)
+            .send({title: 'test update new data'})
+            .expect(204)
+
+        await request(app)
+            .get('/api/books/' + createdBook.id)
+            .expect(200, {
+                ...createdBook,
+                title: 'test update new data'
+            })
+    })
+
+    test('PUT /api/books/:id: should not update data without title', async () => {
+        await request(app)
+            .put('/api/books/' + createdBook.id)
+            .send({title: ''})
+            .expect(400)
     })
 
     test('PUT /api/books/:id: cannot update data, book not found', async () => {
@@ -87,8 +115,8 @@ describe('test api books', () => {
         await request(app)
             .get('/api/books/' + createdBook.id)
             .expect(200, {
-                ...createdBook,
-                title: 'test update new data'
+                id: createdBook.id,
+                title: 'test update new data',
             })
     })
 
