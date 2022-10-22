@@ -1,5 +1,6 @@
 const request = require("supertest");
 const app = require("../../index");
+const path = require("path");
 
 describe('test api books', () => {
     beforeAll(async () => {
@@ -29,25 +30,26 @@ describe('test api books', () => {
             .expect(200, [])
     })
 
-    let createdBook = null;
+    var createdBook = null;
+    const pdfDoc = path.resolve(__dirname, './test-files/test.pdf');
     test('POST /api/books: should create data', async () => {
         const createResponse = await request(app)
             .post('/api/books')
-            .send({
-                title: 'test title',
-                description: 'test description',
-                authors: 'test authors',
-                favorite: 'test favorite',
-                fileCover: 'test fileCover',
-                fileName: 'test fileName'
-            })
+            .set('content-type', 'multipart/form-data')
+            .field('title', 'test title')
+            .field('description', 'test description')
+            .field('authors', 'test authors')
+            .field('favorite', 'test favorite')
+            .field('fileCover', 'test fileCover')
+            .field('fileName', 'test fileName 333')
+            .attach('fileBook', pdfDoc)
             .expect(201)
 
         createdBook = createResponse.body
-
         expect(createdBook).toEqual({
+            fileBook: createdBook.fileBook,
             fileCover: 'test fileCover',
-            fileName: 'test fileName',
+            fileName: 'test fileName 333',
             authors: 'test authors',
             description: 'test description',
             favorite: 'test favorite',

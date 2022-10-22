@@ -1,6 +1,9 @@
 const express = require('express')
 const router = express.Router()
 const {v4: uuid} = require('uuid');
+const fileMolter = require('../middleware/file.js')
+const fs = require('fs')
+const path = require('path')
 
 class Book {
     constructor(
@@ -10,6 +13,7 @@ class Book {
         favorite = '',
         fileCover = '',
         fileName = '',
+        fileBook = '',
         id = uuid()
     ) {
         this.id = id
@@ -19,6 +23,7 @@ class Book {
         this.favorite = favorite
         this.fileName = fileName
         this.fileCover = fileCover
+        this.fileBook = fileBook
     }
 }
 
@@ -31,7 +36,8 @@ const store = {
             authors: "initial authors",
             favorite: "initial favorite",
             fileCover: "initial fileCover",
-            fileName: "initial fileName"
+            fileName: "initial fileName",
+            fileBook: "initial fileBook"
         }
     ]
 }
@@ -57,7 +63,7 @@ router.post('/user/login', (req, res) => {
     const index = users.findIndex(item => item.id === id)
 
     if (index !== -1) {
-        res.status(201)
+        res.status(200)
         res.json(users[index])
     } else {
         res.status(404)
@@ -74,7 +80,6 @@ router.get('/books', (req, res) => {
 router.get('/books/:id', (req, res) => {
     const {books} = store
     const {id} = req.params
-    console.log(id)
     const index = books.findIndex(item => item.id === id)
 
     if (index !== -1) {
@@ -86,75 +91,102 @@ router.get('/books/:id', (req, res) => {
     }
 })
 
-router.post('/books', (req, res) => {
-    const {books} = store
-    const {title, description, authors, favorite, fileCover, fileName} = req.body
+router.post('/books', fileMolter.single('fileBook'),
+    (req, res) => {
+        const {books} = store
+        const {title, description, authors, favorite, fileCover, fileName} = req.body
 
-    if (!title || title === '') {
-        res.sendStatus(404)
-        return
-    }
-
-    const newBook = new Book(title, description, authors, favorite, fileCover, fileName)
-
-    books.push(newBook)
-
-    res.status(201)
-    res.json(newBook)
-})
-
-router.put('/books/:id', (req, res) => {
-    const {books} = store
-    const {title, description, authors, favorite, fileName, fileCover} = req.body
-    const {id} = req.params
-
-    if (!title || title === '') {
-        res.sendStatus(400)
-        return
-    }
-    const index = books.findIndex(item => item.id == id)
-
-    if (index !== -1) {
-        books[index] = {
-            ...books[index],
-            title,
-            description,
-            authors,
-            favorite,
-            fileName,
-            fileCover,
+        if (!title || title === '') {
+            res.sendStatus(404)
+            return
         }
-        res.status(204)
-        res.json(books[index])
-    } else {
-        res.status(404)
-        res.json({error: '404 | запись не найдена'})
-    }
-})
 
-router.patch('/books/:id', (req, res) => {
-    const {books} = store
-    const {title} = req.body
-    const {id} = req.params
+        const fileBook = '/public/books/' + req.file.filename
+        const newBook = new Book(title, description, authors, favorite, fileCover, fileName, fileBook)
 
-    if (!title || title === '') {
-        res.sendStatus(400)
-        return
-    }
-    const index = books.findIndex(item => item.id == id)
+        books.push(newBook)
 
-    if (index !== -1) {
-        books[index] = {
-            ...books[index],
-            ...req.body
+        res.status(201)
+        res.json(newBook)
+    })
+
+router.put('/books/:id', fileMolter.single('fileBook'),
+    (req, res) => {
+        const {books} = store
+        const {title, description, authors, favorite, fileName, fileCover} = req.body
+        const {id} = req.params
+
+        if (req.file) {
+            var fileBook = '/public/books/' + req.file.filename
         }
-        res.status(204)
-        res.json(books[index])
-    } else {
-        res.status(404)
-        res.json({error: '404 | запись не найдена'})
-    }
-})
+
+        if (!title || title === '') {
+            res.sendStatus(400)
+            return
+        }
+        const index = books.findIndex(item => item.id == id)
+
+        if (index !== -1) {
+            books[index] = {
+                ...books[index],
+                title,
+                description,
+                authors,
+                favorite,
+                fileName,
+                fileCover,
+                fileBook
+            }
+            res.status(204)
+            res.json(books[index])
+        } else {
+            res.status(404)
+            res.json({error: '404 | запись не найдена'})
+        }
+    })
+
+router.patch('/books/:id', fileMolter.single('fileBook'),
+    (req, res) => {
+        const {books} = store
+        const {title} = req.body
+        const {id} = req.params
+
+        if (!title || title === '') {
+            res.sendStatus(400)
+            return
+        }
+
+        const index = books.findIndex(item => item.id == id)
+
+        if (req.file) {
+            let fileBook = '/public/books/' + req.file.filename
+
+            if (index !== -1) {
+                books[index] = {
+                    ...books[index],
+                    ...req.body,
+                    fileBook
+                }
+                res.status(204)
+                res.json(books[index])
+            } else {
+                res.status(404)
+                res.json({error: '404 | запись не найдена'})
+            }
+        } else {
+            if (index !== -1) {
+                books[index] = {
+                    ...books[index],
+                    ...req.body
+                }
+                res.status(204)
+                res.json(books[index])
+            } else {
+                res.status(404)
+                res.json({error: '404 | запись не найдена'})
+            }
+        }
+    })
 
 router.delete('/books/:id', (req, res) => {
     const {books} = store
@@ -163,6 +195,15 @@ router.delete('/books/:id', (req, res) => {
     const index = books.findIndex(item => item.id == id)
 
     if (index !== -1) {
+        try {
+            const rootDir = require('path').resolve('./')
+            fs.unlinkSync(rootDir + books[index].fileBook)
+        } catch (error) {
+            fs.appendFile('server.logs', `FILE ${books[index].fileBook} ERROR TO DELETE: ${error}`,
+                (err) => {
+                    if (err) throw err;
+                })
+        }
         books.splice(books[index], 1)
         res.status(201)
         res.json({success: 'Запись была успешна удалена.'})
