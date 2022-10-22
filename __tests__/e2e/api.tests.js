@@ -19,6 +19,12 @@ describe('test api books', () => {
             .expect(404)
     })
 
+    test('GET /api/books/:id/download: return 404 for not existing book', async () => {
+        await request(app)
+            .get('/api/books/1234/download')
+            .expect(404)
+    })
+
     test('POST /api/books: should not create data without title', async () => {
         await request(app)
             .post('/api/books')
@@ -60,6 +66,12 @@ describe('test api books', () => {
         await request(app)
             .get('/api/books')
             .expect(200, [createdBook])
+    })
+
+    test('GET /api/books/:id/download: return 200 and download book file', async () => {
+        await request(app)
+            .get('/api/books/' + createdBook.id + '/download')
+            .expect(200)
     })
 
     test('PATCH /api/books/:id: should not update data without title', async () => {

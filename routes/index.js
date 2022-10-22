@@ -53,10 +53,6 @@ const auth = {
     ]
 }
 
-router.get('/', (req, res) => {
-    res.json({message: "Welcome to book API"})
-})
-
 router.post('/user/login', (req, res) => {
     const {users} = auth
     const {id} = req.query
@@ -85,6 +81,20 @@ router.get('/books/:id', (req, res) => {
     if (index !== -1) {
         res.status(200)
         res.json(books[index])
+    } else {
+        res.status(404)
+        res.json({error: '404 | книга не найдена'})
+    }
+})
+
+router.get('/books/:id/download', (req, res) => {
+    const {books} = store
+    const {id} = req.params
+    const index = books.findIndex(item => item.id === id)
+
+    if (index !== -1) {
+        res.status(200)
+        res.download(path.join(process.cwd(), books[index].fileBook), books[index].fileName)
     } else {
         res.status(404)
         res.json({error: '404 | книга не найдена'})
