@@ -1,5 +1,5 @@
 const express = require('express')
-const router = express.Router()
+const apiRouter = express.Router()
 const {v4: uuid} = require('uuid');
 const fileMolter = require('../middleware/file.js')
 const fs = require('fs')
@@ -38,7 +38,27 @@ const store = {
             fileCover: "initial fileCover",
             fileName: "initial fileName",
             fileBook: "initial fileBook"
-        }
+        },
+        {
+            id: "2",
+            title: "second title",
+            description: "second description",
+            authors: "second authors",
+            favorite: "second favorite",
+            fileCover: "second fileCover",
+            fileName: "second fileName",
+            fileBook: "second fileBook"
+        },
+        {
+            id: "3",
+            title: "third title",
+            description: "third description",
+            authors: "third authors",
+            favorite: "third favorite",
+            fileCover: "third fileCover",
+            fileName: "third fileName",
+            fileBook: "third fileBook"
+        },
     ]
 }
 
@@ -53,7 +73,7 @@ const auth = {
     ]
 }
 
-router.post('/user/login', (req, res) => {
+apiRouter.post('/user/login', (req, res) => {
     const {users} = auth
     const {id} = req.query
     const index = users.findIndex(item => item.id === id)
@@ -67,13 +87,13 @@ router.post('/user/login', (req, res) => {
     }
 })
 
-router.get('/books', (req, res) => {
+apiRouter.get('/books', (req, res) => {
     const {books} = store
     res.status(200)
     res.json(books)
 })
 
-router.get('/books/:id', (req, res) => {
+apiRouter.get('/books/:id', (req, res) => {
     const {books} = store
     const {id} = req.params
     const index = books.findIndex(item => item.id === id)
@@ -87,10 +107,10 @@ router.get('/books/:id', (req, res) => {
     }
 })
 
-router.get('/books/:id/download', (req, res) => {
+apiRouter.get('/books/:id/download', (req, res) => {
     const {books} = store
     const {id} = req.params
-    const index = books.findIndex(item => item.id === id)
+    const index = books.findIndex(item => item.id == id)
 
     if (index !== -1) {
         res.status(200)
@@ -101,10 +121,10 @@ router.get('/books/:id/download', (req, res) => {
     }
 })
 
-router.post('/books', fileMolter.single('fileBook'),
+apiRouter.post('/books', fileMolter.single('fileBook'),
     (req, res) => {
         const {books} = store
-        const {title, description, authors, favorite, fileCover, fileName} = req.body
+        const {title, description, authors, favorite, fileCover, client} = req.body
 
         if (!title || title === '') {
             res.sendStatus(404)
@@ -112,15 +132,21 @@ router.post('/books', fileMolter.single('fileBook'),
         }
 
         const fileBook = '/public/books/' + req.file.filename
+        const fileName = req.file.filename
         const newBook = new Book(title, description, authors, favorite, fileCover, fileName, fileBook)
 
         books.push(newBook)
 
-        res.status(201)
-        res.json(newBook)
+        if (!client) {
+            res.status(201)
+            res.json(newBook)
+        } else {
+            res.status(201)
+            res.redirect('/site/books')
+        }
     })
 
-router.put('/books/:id', fileMolter.single('fileBook'),
+apiRouter.put('/books/:id', fileMolter.single('fileBook'),
     (req, res) => {
         const {books} = store
         const {title, description, authors, favorite, fileName, fileCover} = req.body
@@ -155,7 +181,7 @@ router.put('/books/:id', fileMolter.single('fileBook'),
         }
     })
 
-router.patch('/books/:id', fileMolter.single('fileBook'),
+apiRouter.patch('/books/:id', fileMolter.single('fileBook'),
     (req, res) => {
         const {books} = store
         const {title} = req.body
@@ -198,7 +224,7 @@ router.patch('/books/:id', fileMolter.single('fileBook'),
         }
     })
 
-router.delete('/books/:id', (req, res) => {
+apiRouter.delete('/books/:id', (req, res) => {
     const {books} = store
     const {id} = req.params
 
@@ -223,9 +249,9 @@ router.delete('/books/:id', (req, res) => {
     }
 })
 
-router.delete('/__test__/data', (req, res) => {
+apiRouter.delete('/__test__/data', (req, res) => {
     store.books = []
     res.sendStatus(204)
 })
 
-module.exports = router
+module.exports = {apiRouter, store}

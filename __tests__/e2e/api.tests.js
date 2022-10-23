@@ -55,7 +55,7 @@ describe('test api books', () => {
         expect(createdBook).toEqual({
             fileBook: createdBook.fileBook,
             fileCover: 'test fileCover',
-            fileName: 'test fileName 333',
+            fileName: createdBook.fileName,
             authors: 'test authors',
             description: 'test description',
             favorite: 'test favorite',
