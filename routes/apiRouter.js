@@ -31,33 +31,33 @@ const store = {
     books: [
         {
             id: "1",
-            title: "initial title",
-            description: "initial description",
-            authors: "initial authors",
-            favorite: "initial favorite",
-            fileCover: "initial fileCover",
-            fileName: "initial fileName",
-            fileBook: "initial fileBook"
+            title: "Сказать жизни «Да!»: психолог в концлагере",
+            description: "Эта удивительная книга сделала ее автора одним из величайших духовных учителей человечества в XX веке. В ней философ и психолог Виктор Франкл, прошедший нацистские лагеря смерти, открыл миллионам людей всего мира путь постижения смысла жизни.",
+            authors: "Виктор Франкл",
+            favorite: "Биографии и мемуары, Зарубежная публицистика",
+            fileCover: "Хит продаж",
+            fileName: "test.png",
+            fileBook: '/public/books/test.png'
         },
         {
             id: "2",
-            title: "second title",
-            description: "second description",
-            authors: "second authors",
+            title: "Will",
+            description: "Чему может научить нас простой парень, ставший самым высокооплачиваемым актером Голливуда",
+            authors: "Уилл Смитб Марк Мэнсон",
             favorite: "second favorite",
             fileCover: "second fileCover",
-            fileName: "second fileName",
-            fileBook: "second fileBook"
+            fileName: "test.png",
+            fileBook: '/public/books/test.png'
         },
         {
             id: "3",
-            title: "third title",
-            description: "third description",
-            authors: "third authors",
-            favorite: "third favorite",
-            fileCover: "third fileCover",
-            fileName: "third fileName",
-            fileBook: "third fileBook"
+            title: "Тонкое искусство пофигизма.",
+            description: "необходимо научиться искусству пофигизма. Определив то, до чего вам действительно есть дело, нужно уметь наплевать на все второстепенное, забить на трудности",
+            authors: "Марк Мэнсон",
+            favorite: " Зарубежная психология, Саморазвитие / личностный рост, Социальная психология",
+            fileCover: " Бестселлеры «New York Times», Борьба со стрессом, Поиск предназначения, Самореализация",
+            fileName: "test.png",
+            fileBook: '/public/books/test.png'
         },
     ]
 }
@@ -149,7 +149,7 @@ apiRouter.post('/books', fileMolter.single('fileBook'),
 apiRouter.put('/books/:id', fileMolter.single('fileBook'),
     (req, res) => {
         const {books} = store
-        const {title, description, authors, favorite, fileName, fileCover} = req.body
+        const {title, description, authors, favorite, fileName, fileCover, client} = req.body
         const {id} = req.params
 
         if (req.file) {
@@ -162,7 +162,20 @@ apiRouter.put('/books/:id', fileMolter.single('fileBook'),
         }
         const index = books.findIndex(item => item.id == id)
 
-        if (index !== -1) {
+        if (client && index !== -1) {
+            books[index] = {
+                ...books[index],
+                title,
+                description,
+                authors,
+                favorite,
+                fileName,
+                fileCover,
+                fileBook
+            }
+            res.status(204)
+            res.redirect('/site/books')
+        }else if(!client && index !== -1) {
             books[index] = {
                 ...books[index],
                 title,
@@ -178,6 +191,50 @@ apiRouter.put('/books/:id', fileMolter.single('fileBook'),
         } else {
             res.status(404)
             res.json({error: '404 | запись не найдена'})
+        }
+    })
+
+
+apiRouter.post('/books/:id/update', fileMolter.single('fileBook'),
+    (req, res) => {
+        const {books} = store
+        const {title} = req.body
+        const {id} = req.params
+
+        if (!title || title === '') {
+            res.sendStatus(400)
+            return
+        }
+
+        const index = books.findIndex(item => item.id == id)
+
+        if (req.file) {
+            let fileBook = '/public/books/' + req.file.filename
+
+            if (index !== -1) {
+                books[index] = {
+                    ...books[index],
+                    ...req.body,
+                    fileBook
+                }
+                res.status(204)
+                res.redirect('/site/books')
+            } else {
+                res.status(404)
+                res.json({error: '404 | запись не найдена'})
+            }
+        } else {
+            if (index !== -1) {
+                books[index] = {
+                    ...books[index],
+                    ...req.body
+                }
+                res.status(204)
+                res.redirect('/site/books')
+            } else {
+                res.status(404)
+                res.json({error: '404 | запись не найдена'})
+            }
         }
     })
 

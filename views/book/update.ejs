@@ -13,37 +13,39 @@
 </head>
 <body>
 <div class="container">
-    <h1 class="mb-3 mt-5" style="margin-right: 15px;"><%= pageTitle %></h1>
-    <form enctype="multipart/form-data" action="/api/books" method="POST">
+    <h1 class="mb-3 mt-5" style="margin-right: 15px;"> Редактирование книги:  <%= pageTitle %></h1>
+    <form enctype="multipart/form-data" action="/api/books/<%=book.id%>/update" method="POST">
         <input type="HIDDEN" name="client" value="client"/>
         <div class="form-group mb-3">
             <label>
                 <span>Название Книги</span>
-                <input type="text" class="form-control" placeholder="Введите название" name="title" required>
+                <input type="text" class="form-control" placeholder="Введите название" name="title" value="<%=book.title%>" required>
             </label>
         </div>
         <div class="form-group mb-3">
             <label>
                 <span> Описание книги </span>
-                <textarea rows="3" cols="25" class="form-control" name="description"></textarea>
+                <textarea rows="3" cols="25" class="form-control" name="description">
+                    <%=book.description%>
+                </textarea>
             </label>
         </div>
         <div class="form-group mb-3">
             <label>
                 <span>Авторы</span>
-                <input type="text" class="form-control" placeholder="Введите название" name="authors">
+                <input type="text" class="form-control" placeholder="Введите название" name="authors" value="<%=book.authors%>">
             </label>
         </div>
         <div class="form-group mb-3">
             <label>
                 <span>Favorite</span>
-                <input type="text" class="form-control" placeholder="Введите название" name="favorite">
+                <input type="text" class="form-control" placeholder="Введите название" name="favorite" value="<%=book.favorite%>">
             </label>
         </div>
         <div class="form-group mb-3">
             <label>
                 <span>File Cover</span>
-                <input type="text" class="form-control" placeholder="Введите название" name="fileCover">
+                <input type="text" class="form-control" placeholder="Введите название" name="fileCover" value="<%=book.fileCover%>">
             </label>
         </div>
         <div class="form-group mb-3">
